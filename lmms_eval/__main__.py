@@ -251,6 +251,13 @@ def parse_eval_args() -> argparse.Namespace:
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
+    parser.add_argument(
+        "--use_lora",
+        type=bool,
+        default=False,
+        help="No need. Included in model_args",
+    )
+
     default_seed_string = "0,1234,1234,1234"
     parser.add_argument(
         "--seed",

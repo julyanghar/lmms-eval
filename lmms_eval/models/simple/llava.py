@@ -65,6 +65,7 @@ class Llava(lmms):
         tie_weights: bool = True,
         truncate_context=False,  # whether to truncate the context in generation, set it False for LLaVA-1.6
         customized_config=None,  # ends in json
+        lora=False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -95,12 +96,18 @@ class Llava(lmms):
             llava_model_args["use_flash_attention_2"] = kwargs["use_flash_attention_2"]
         model_name = model_name if model_name is not None else get_model_name_from_path(pretrained)
         try:
-            # Try to load the model with the multimodal argument
-            self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, None, model_name, device_map=self.device_map, **llava_model_args)
+            if lora:
+                self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, model_name, model_name+'_lora', device_map=self.device_map, **llava_model_args)
+            else:
+                self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, None, model_name, device_map=self.device_map, **llava_model_args)
+
         except TypeError:
             # for older versions of LLaVA that don't have multimodal argument
             llava_model_args.pop("multimodal", None)
-            self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, None, model_name, device_map=self.device_map, **llava_model_args)
+            if lora:
+                self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, model_name, model_name+'_lora', device_map=self.device_map, **llava_model_args)            
+            else:
+                self._tokenizer, self._model, self._image_processor, self._max_length = load_pretrained_model(pretrained, None, model_name, device_map=self.device_map, **llava_model_args)
         self._config = self._model.config
         self.model.eval()
         if tie_weights:
